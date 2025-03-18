@@ -476,12 +476,6 @@ function Save-PackageLocally {
     $AccessTokenSecureString = $env:SYSTEM_ACCESS_TOKEN | ConvertTo-SecureString -AsPlainText -Force
     $credentialsObject = [pscredential]::new("ONEBRANCH_TOKEN", $AccessTokenSecureString)
 
-    if (Get-PSResourceRepository -Name $Env:DEFAULT_PS_REPOSITORY_NAME -ErrorAction SilentlyContinue) {
-        Write-Output "Repository $Env:DEFAULT_PS_REPOSITORY_NAME already registered"
-    } else {
-    Register-PSResourceRepository -Name $Env:DEFAULT_PS_REPOSITORY_NAME -Uri $Env:DEFAULT_PS_REPOSITORY_URL -Trusted:$True
-    }
-    install-module $ModuleName -Repository $Env:DEFAULT_PS_REPOSITORY_NAME -Credential $credentialsObject
 
     # Only check for the modules that specifies = required exact dependency version
     if ($RequiredVersion -ne $null) {
@@ -602,6 +596,12 @@ function Add-AllModules {
     )
     $Keys = @('ClientModules', 'AdminModules', 'RollupModules')
     Write-Output "adding modules to local repo"
+    if (Get-PSResourceRepository -Name $Env:DEFAULT_PS_REPOSITORY_NAME -ErrorAction SilentlyContinue) {
+        Write-Output "Repository $Env:DEFAULT_PS_REPOSITORY_NAME already registered"
+    } else {
+        Register-PSResourceRepository -Name $Env:DEFAULT_PS_REPOSITORY_NAME -Uri $Env:DEFAULT_PS_REPOSITORY_URL -Trusted:$True
+    }
+    install-module -Name Az -Repository $Env:DEFAULT_PS_REPOSITORY_NAME -Credential $credentialsObject
     foreach ($module in $Keys) {
         $modulePath = $Modules[$module]
         Write-Output "Adding $module modules to local repo"
